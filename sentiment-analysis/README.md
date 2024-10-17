@@ -19,4 +19,4 @@ const response = await s.prompt("Analyze the review for sentiment and identify i
 ```
 
 # Instructions to run
-Load the index.html in the Chrome Canary version with the Built-in AI setup / configuration done. Click on `Analyze Sentiment` button. 
+Load the `index.html` in the Chrome Canary version with the Built-in AI setup / configuration done. Click on `Analyze Sentiment` button. 
