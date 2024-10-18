@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: sans-serif;
+        }
+
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            width: 50%; /* Occupy half the screen width */
+            max-width: 400px; /* Limit maximum width */
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .chat-messages {
+            padding: 10px;
+            height: 100px;
+            overflow-y: auto;
+        }
+
+        .chat-input {
+            display: flex;
+            padding: 10px;
+        }
+
+        .chat-input textarea {
+            flex-grow: 1;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            resize: vertical;
+            height: 100px;
+        }
+
+        .chat-input button {
+            padding: 8px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div id="chat-messages" class="chat-messages">
+            </div>
+        <div class="chat-input">
+            <textarea id="text-input" placeholder="Enter your text here..."></textarea>
+            <button onclick="summarizeText()">Summarize</button>
+            <button onclick="clearOutput()">Clear</button>
+        </div>
+    </div>
+    <script>
+        let aiSession = null;
+        async function initTextSession() {
+            if (!window.ai) {
+                throw new Error("Chrome AI API is not available.");
+            }
+            aiSession = await ai.languageModel.create();
+            console.log("AI Session created.");
+        }
+
+        function addMessage(message) {
+            document.getElementById("chat-messages").innerHTML = message; // Update the entire content
+        }
+
+        async function summarizeText() {
+            const textInput = document.getElementById("text-input");
+            const text = textInput.value.trim();
+            if (!text) return;
+
+            if (!aiSession) {
+                addMessage("AI: Sorry I am not available now.");
+                return;
+            }
+
+            const response = await aiSession.prompt(`Summarize this text: ${text}`);
+            addMessage("Summary: " + response);
+        }
+
+        function clearOutput() {
+            document.getElementById("text-input").value = "";
+            document.getElementById("chat-messages").innerHTML = "";
+        }
+
+        initTextSession();
+    </script>
+</body>
+</html>
