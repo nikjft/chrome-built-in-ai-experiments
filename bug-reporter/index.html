@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Bug Tracker</title>
+<style>
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+th, td {
+  border: 1px solid black;
+  padding: 8px;
+  text-align: left;
+}
+
+th {
+  background-color: #f2f2f2;
+}
+</style>
+</head>
+<body>
+
+<h2>Bug Reports <button id="analyzeButton">Summarize Bugs</button></h2>
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Datetime</th>
+      <th>Bug Details</th>
+      <th>User Email</th>
+      <th>Status</th>
+      <th>Title</th>
+      <th>Summary</th>
+    </tr>
+  </thead>
+  <tbody id="bugTableBody">
+    <!-- Sample data will be inserted here by JavaScript -->
+  </tbody>
+</table>
+
+<script>
+  const today = new Date().toISOString().slice(0, 10);
+
+  const bugs = [
+    { id: 1, datetime: today, bug_details: "I am trying to submit a form on the website, but when I click the 'Submit' button, nothing happens. I have tried using different browsers, including Chrome, Firefox, and Safari, but the issue persists. I have also cleared my browser cache and cookies, but the problem remains. I am using the latest version of each browser. I have tried submitting the form with different data, but the issue persists. I have also tried submitting the form on different devices, but the issue persists. I am not sure what else to try.", user_email: "user1@example.com", status: "New" },
+    /*{ id: 2, datetime: today, bug_details: "The website layout appears broken on mobile devices. When I access the website on my iPhone, the images overlap the text, making it difficult to read. The text is also too small and the buttons are not properly aligned. This makes the website unusable on mobile devices. I have tried using different browsers on my iPhone, but the issue persists. I have also tried rotating my phone, but the issue persists. I have also tried clearing my browser cache and cookies, but the issue persists.", user_email: "user2@example.com", status: "New" },
+    { id: 3, datetime: today, bug_details: "I am unable to log in to my account. I have tried entering my correct username and password, but I keep getting an 'Invalid username or password' error message. I have also tried resetting my password, but I am still unable to log in. I am concerned that my account may have been compromised. I have tried logging in from different devices, but the issue persists. I have also tried using different browsers, but the issue persists.", user_email: "user3@example.com", status: "New" },
+    { id: 4, datetime: today, bug_details: "The search function on the website is not returning accurate results. I searched for 'product A', but the results included several listings for 'product B'. I tried different search terms and variations, but the issue persists. This makes it difficult to find the products I am looking for. I have tried clearing my browser cache and cookies, but the issue persists. I have also tried using different browsers, but the issue persists.", user_email: "user4@example.com", status: "New" },
+    { id: 5, datetime: today, bug_details: "The website is taking an unusually long time to load. I have a fast internet connection, so I don't believe it is a network issue. The loading time is significantly slower than usual, making it frustrating to use the website. I have tried clearing my browser cache and cookies, but the problem persists. I have also tried using different browsers, but the issue persists. I have also tried restarting my computer, but the issue persists.", user_email: "user5@example.com", status: "New" }
+     */
+  ];
+
+  const tableBody = document.getElementById("bugTableBody");
+  const analyzeButton = document.getElementById("analyzeButton");
+
+  let s; // Declare 's' in a wider scope
+
+  async function summarizeBug(bugDetails) {
+      console.log("Summarizing bug:", bugDetails);
+      const response = await s.prompt("Summarize the following bug report: " + bugDetails);
+      return response.trim(); // Trim any extra whitespace
+    }
+
+    async function titleBug(bugDetails) {
+      console.log("Generating a title for the bug:", bugDetails);
+      const response = await s.prompt("Provide a single line title for the following bug report.: " + bugDetails);
+      return response.trim(); // Trim any extra whitespace
+    }
+
+    function displayBugs() {
+    tableBody.innerHTML = ""; // Clear existing rows
+
+    bugs.forEach(bug => {
+      const row = tableBody.insertRow();
+      row.insertCell().textContent = bug.id;
+      row.insertCell().textContent = bug.datetime;
+      row.insertCell().textContent = bug.bug_details;
+      row.insertCell().textContent = bug.user_email;
+      row.insertCell().textContent = bug.status;
+
+      const titleCell = row.insertCell();
+      if (bug.title) {  
+          titleCell.textContent = bug.title;
+      }
+
+      const summaryCell = row.insertCell();
+      if (bug.summary) { // Add summary if it's been generated
+          summaryCell.textContent = bug.summary;
+      }
+    });
+  }
+
+    analyzeButton.addEventListener("click", async () => {
+      for (const bug of bugs) {
+        bug.summary = await summarizeBug(bug.bug_details);
+        bug.title = await titleBug(bug.bug_details);
+      }
+      displayBugs();
+    });
+
+    // Immediately Invoked Function Expression (IIFE) to initialize 's'
+    (async () => {
+        s = await ai.languageModel.create({
+            systemPrompt: "You are an expert bug report summarizer."
+        });
+
+        // Initial display of bugs (can be moved outside the IIFE if needed)
+        displayBugs();
+        })(); 
+    </script>
+
+</script>
+
+</body>
+</html>
+
