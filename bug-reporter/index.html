@@ -54,17 +54,18 @@ th {
   const tableBody = document.getElementById("bugTableBody");
   const analyzeButton = document.getElementById("analyzeButton");
 
-  let s; // Declare 's' in a wider scope
+  let summarizer;
+  let promptModel;
 
   async function summarizeBug(bugDetails) {
       console.log("Summarizing bug:", bugDetails);
-      const response = await s.prompt("Summarize the following bug report: " + bugDetails);
+      const response = await summarizer.summarize("Summarize the following bug report: " + bugDetails);
       return response.trim(); // Trim any extra whitespace
     }
 
     async function titleBug(bugDetails) {
       console.log("Generating a title for the bug:", bugDetails);
-      const response = await s.prompt("Provide a single line title for the following bug report.: " + bugDetails);
+      const response = await promptModel.prompt("Provide a single line title for the following bug report.: " + bugDetails);
       return response.trim(); // Trim any extra whitespace
     }
 
@@ -101,9 +102,11 @@ th {
 
     // Immediately Invoked Function Expression (IIFE) to initialize 's'
     (async () => {
-        s = await ai.languageModel.create({
+        promptModel = await ai.languageModel.create({
             systemPrompt: "You are an expert bug report summarizer."
         });
+
+        summarizer = await ai.summarizer.create();
 
         // Initial display of bugs (can be moved outside the IIFE if needed)
         displayBugs();
