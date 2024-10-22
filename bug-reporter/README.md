@@ -6,20 +6,22 @@ When the *Summarize Bugs* button is clicked, it will go through each of the bugs
 
 # High Level code
 
-Create the session object
+We create two session objects, one from the Prompt API (used to generate the Title) and the other for the Summarizer API (used to generate the Summary)
 ```
-s = await ai.languageModel.create({
+        promptModel = await ai.languageModel.create({
             systemPrompt: "You are an expert bug report summarizer."
         });
+
+        summarizer = await ai.summarizer.create();
 ```
 
-Invoke the `prompt` function on the session object. The prompt passes in the `bug details` i.e. the text reported by the user in the bug.
+The summarization and generating the title tag code snippets are as shown:
 ```
       //This snippet is for the summary
-      const response = await s.prompt("Summarize the following bug report: " + bugDetails);
+      const response = await summarizer.summarize("Summarize the following bug report: " + bugDetails);
 
       //This snippet is for the title
-      const response = await s.prompt("Provide a single line title for the following bug report.: " + bugDetails);
+      const response = await promptModel.prompt("Provide a single line title for the following bug report.: " + bugDetails);
 
 ```
 
