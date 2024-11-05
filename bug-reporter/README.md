@@ -27,3 +27,6 @@ The summarization and generating the title tag code snippets are as shown:
 
 # Instructions to run
 Load the `index.html` in the Chrome Canary version with the Built-in AI setup / configuration done. Click on *Summarize Bugs* button. 
+
+# Tooltip version
+You can try the `index-tooltips.html` version to see a similar solution but one that does not explicitly generate the summarization via the *Summarize Bugs* button. In this example, as you hover over a title or the description, a dynamic tooltip is generated with the summary. The details are covered in the blog post [Using Chrome Built-in AI Nano models to add AI features to existing Web Applications](https://iromin.medium.com/using-chrome-built-in-ai-nano-models-to-add-ai-features-to-existing-web-applications-e4abe712b26c). 
