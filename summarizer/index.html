@@ -1,103 +1,127 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            font-family: sans-serif;
-        }
+  <title>Text Summarizer</title>
+  <style>
+    body {
+      font-family: sans-serif;
+    }
 
-        .chat-container {
-            display: flex;
-            flex-direction: column;
-            width: 50%; /* Occupy half the screen width */
-            max-width: 400px; /* Limit maximum width */
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
+    textarea {
+      width: 100%;
+      height: 200px;
+      resize: vertical;
+      margin-bottom: 10px;
+    }
 
-        .chat-messages {
-            padding: 10px;
-            height: 100px;
-            overflow-y: auto;
-        }
+    button {
+      padding: 10px 20px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
 
-        .chat-input {
-            display: flex;
-            padding: 10px;
-        }
+    #summary-container {
+      margin-top: 20px;
+      border: 1px solid #ccc;
+      padding: 10px;
+    }
 
-        .chat-input textarea {
-            flex-grow: 1;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 3px;
-            resize: vertical;
-            height: 100px;
-        }
+    #summary-container > div {
+      margin-bottom: 15px;
+      padding: 10px;
+      border: 1px solid #eee;
+      border-radius: 5px;
+    }
 
-        .chat-input button {
-            padding: 8px 15px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 3px;
-            cursor: pointer;
-            margin-left: 10px;
-        }
-    </style>
+    #summary-container > div h3 {
+      margin-top: 0;
+    }
+
+    #wait-cursor {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 3em;
+    }
+  </style>
 </head>
 <body>
-    <div class="chat-container">
-        <div id="chat-messages" class="chat-messages">
-            </div>
-        <div class="chat-input">
-            <textarea id="text-input" placeholder="Enter your text here..."></textarea>
-            <button onclick="summarizeText()">Summarize</button>
-            <button onclick="clearOutput()">Clear</button>
-        </div>
+
+  <h1>Text Summarizer</h1>
+
+  <textarea id="input-text" placeholder="Enter your text here..."></textarea>
+
+  <button id="summarize-button">Summarize</button>
+
+  <div id="wait-cursor">⏳</div>
+  <div id="summary-container">
+    <h2>Summary:</h2>
+    <div id="tl;dr-summary">
+      <h3>TL;DR Summary:</h3>
+      <p></p> </div>
+    <div id="key-points-summary">
+      <h3>Key Points:</h3>
+      <p></p> </div>
+    <div id="teaser-summary">
+      <h3>Teaser:</h3>
+      <p></p> </div>
+    <div id="headline-summary">
+      <h3>Headline:</h3>
+      <p></p> </div>
     </div>
-    <script>
-        let aiSession = null;
-        async function initTextSession() {
-            if (!window.ai) {
-                throw new Error("Chrome AI API is not available.");
-            }
-            aiSession = await ai.languageModel.create();
-            console.log("AI Session created.");
+
+  <script>
+    const inputText = document.getElementById('input-text');
+    const summarizeButton = document.getElementById('summarize-button');
+    const tlDrSummary = document.getElementById('tl;dr-summary');
+    const keyPointsSummary = document.getElementById('key-points-summary');
+    const teaserSummary = document.getElementById('teaser-summary');
+    const headlineSummary = document.getElementById('headline-summary');
+    const waitCursor = document.getElementById('wait-cursor');
+
+    summarizeButton.addEventListener('click', async () => {
+      const text = inputText.value;
+      try {
+        // Check for browser AI support
+        const summarizerCapabilities = await ai.summarizer.capabilities();
+        if (summarizerCapabilities.available === 'no') {
+          alert('Text Summarizer API not available in this browser.');
+          return;
         }
 
-        function addMessage(message) {
-            document.getElementById("chat-messages").innerHTML = message; // Update the entire content
-        }
+        // Show the wait cursor
+        waitCursor.style.display = 'block';
 
-        async function summarizeText() {
-            const textInput = document.getElementById("text-input");
-            const text = textInput.value.trim();
-            if (!text) return;
+        // Create summarizer instances for each type
+        const tlDrSummarizer = await ai.summarizer.create({ type: 'tl;dr', format: 'plain-text', length: 'short' });
+        const keyPointsSummarizer = await ai.summarizer.create({ type: 'key-points', format: 'plain-text' });
+        const teaserSummarizer = await ai.summarizer.create({ type: 'teaser', format: 'plain-text', length : 'short' });
+        const headlineSummarizer = await ai.summarizer.create({ type: 'headline', format: 'plain-text', length: 'short' });
 
-            if (!aiSession) {
-                addMessage("AI: Sorry I am not available now.");
-                return;
-            }
+        // Summarize using each summarizer
+        const tlDrSummaryText = await tlDrSummarizer.summarize(text);
+        const keyPointsSummaryText = await keyPointsSummarizer.summarize(text);
+        const teaserSummaryText = await teaserSummarizer.summarize(text);
+        const headlineSummaryText = await headlineSummarizer.summarize(text);
 
-            const response = await aiSession.prompt(`Summarize this text: ${text}`);
-            addMessage("Summary: " + response);
-        }
+        // Display the summaries
+        tlDrSummary.querySelector('p').textContent = tlDrSummaryText;
+        keyPointsSummary.querySelector('p').textContent = keyPointsSummaryText;
+        teaserSummary.querySelector('p').textContent = teaserSummaryText;
+        headlineSummary.querySelector('p').textContent = headlineSummaryText;
+      } catch (error) {
+        console.error('Error summarizing text:', error);
+        alert('Error summarizing text. Please try again.');
+      } finally {
+        // Hide the wait cursor
+        waitCursor.style.display = 'none';
+      }
+    });
+  </script>
 
-        function clearOutput() {
-            document.getElementById("text-input").value = "";
-            document.getElementById("chat-messages").innerHTML = "";
-        }
-
-        initTextSession();
-    </script>
 </body>
 </html>
