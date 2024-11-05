@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Issue Tracker</title>
+<style>
+  table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+  th, td {
+    border: 1px solid black;
+    padding: 8px;
+    text-align: left;
+  }
+  .tooltip {
+    display: none;
+    position: absolute;
+    border: 1px solid #ccc;
+    background-color: yellow;
+    padding: 5px;
+    z-index: 10;
+  }
+</style>
+</head>
+<body>
+
+<h2>Issue Tracker</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Date Time</th>
+      <th>Reported by</th>
+      <th>Issue Title</th>
+      <th>Issue Description</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>2024-11-04 10:00</td>
+      <td>test-user-1</td>
+      <td class="title-tooltip" data-tooltip-target="title-tooltip-1">Form not working</td>
+      <td class="desc-tooltip" data-tooltip-target="desc-tooltip-1">I am trying to submit a form on the website, but when I click the 'Submit' button, nothing happens. I have tried using different browsers, including Chrome, Firefox, and Safari, but the issue persists. I have also cleared my browser cache and cookies, but the problem remains. I am using the latest version of each browser. I have tried submitting the form with different data, but the issue persists. I have also tried submitting the form on different devices, but the issue persists. I am not sure what else to try.</td>
+      <td>New</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>2024-11-04 11:30</td>
+      <td>test-user-2</td>
+      <td class="title-tooltip" data-tooltip-target="title-tooltip-2">Site not appearing well on mobile</td>
+      <td class="desc-tooltip" data-tooltip-target="desc-tooltip-2">The website layout appears broken on mobile devices. When I access the website on my iPhone, the images overlap the text, making it difficult to read. The text is also too small and the buttons are not properly aligned. This makes the website unusable on mobile devices. I have tried using different browsers on my iPhone, but the issue persists. I have also tried rotating my phone, but the issue persists. I have also tried clearing my browser cache and cookies, but the issue persists.</td>
+      <td>New</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>2024-11-04 12:30</td>
+      <td>test-user-3</td>
+      <td class="title-tooltip" data-tooltip-target="title-tooltip-3">Login functionality is broken.</td>
+      <td class="desc-tooltip" data-tooltip-target="desc-tooltip-3">I am unable to log in to my account. I have tried entering my correct username and password, but I keep getting an 'Invalid username or password' error message. I have also tried resetting my password, but I am still unable to log in. I am concerned that my account may have been compromised. I have tried logging in from different devices, but the issue persists. I have also tried using different browsers, but the issue persists</td>
+      <td>New</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>2024-11-04 16:30</td>
+      <td>test-user-4</td>
+      <td class="title-tooltip" data-tooltip-target="title-tooltip-4">Site is slow</td>
+      <td class="desc-tooltip" data-tooltip-target="desc-tooltip-4">The website is taking an unusually long time to load. I have a fast internet connection, so I don't believe it is a network issue. The loading time is significantly slower than usual, making it frustrating to use the website. I have tried clearing my browser cache and cookies, but the problem persists. I have also tried using different browsers, but the issue persists. I have also tried restarting my computer, but the issue persists.</td>
+      <td>New</td>
+    </tr>
+    </tbody>
+</table>
+
+<div id="title-tooltip-1" class="tooltip"></div>
+<div id="desc-tooltip-1" class="tooltip"></div>
+<div id="title-tooltip-2" class="tooltip"></div>
+<div id="desc-tooltip-2" class="tooltip"></div>
+<div id="title-tooltip-3" class="tooltip"></div>
+<div id="desc-tooltip-3" class="tooltip"></div>
+<div id="title-tooltip-4" class="tooltip"></div>
+<div id="desc-tooltip-4" class="tooltip"></div>
+<script>
+  const titleTooltips = document.querySelectorAll('.title-tooltip');
+  const descTooltips = document.querySelectorAll('.desc-tooltip');
+
+  async function showTooltip(event, targetId, promptText) {
+    console.log("Invoking showTooltip function with {targetId: " + targetId + ", promptText: " + promptText + "}");
+    const tooltip = document.getElementById(targetId);
+    tooltip.style.display = 'block';
+    tooltip.style.left = event.pageX + 10 + 'px';
+    tooltip.style.top = event.pageY + 10 + 'px';
+
+    try {
+      console.log('Inside showTooltip function');
+      const session = await ai.languageModel.create();
+      console.log('Session created:');
+      const result = await session.prompt(promptText);
+      console.log(result);
+      tooltip.textContent = result;
+    } catch (error) {
+      console.error('Error:', error);
+      tooltip.textContent = 'An error occurred.';
+    }
+  }
+
+  titleTooltips.forEach(title => {
+    title.addEventListener('mouseover', async (event) => {
+      const targetId = title.dataset.tooltipTarget;
+      const description = title.nextElementSibling.textContent; // Get the description from the next cell
+      const promptText = `Generate a concise one-line title for this issue:\n\n${description}`;
+      showTooltip(event, targetId, promptText);
+    });
+    title.addEventListener('mouseout', () => {
+      const targetId = title.dataset.tooltipTarget;
+      document.getElementById(targetId).style.display = 'none';
+    });
+  });
+
+  descTooltips.forEach(desc => {
+    desc.addEventListener('mouseover', async (event) => {
+      const targetId = desc.dataset.tooltipTarget;
+      const description = desc.textContent;
+      const promptText = `Summarize this issue description:\n\n${description}`;
+      showTooltip(event, targetId, promptText);
+    });
+    desc.addEventListener('mouseout', () => {
+      const targetId = desc.dataset.tooltipTarget;
+      document.getElementById(targetId).style.display = 'none';
+    });
+  });
+</script>
+
+</body>
+</html>
