@@ -9,4 +9,6 @@ This project demonstrates a Chrome Extension, which uses the Built-in AI summari
 3. In the browser location, enter `chrome://extensions`. 
 4. We need to Load an unpacked extension, as per the instructions [here](https://developer.chrome.com/docs/extensions/get-started/tutorial/hello-world#load-unpacked). Simply click on `Load unpacked`, specify the root of the repository and you should be all set.
 5. You should see something like this: 
+   <img title="Summarizer Chrome Extension" alt="Summarizer Chrome Extension" src="Chrome-Extension-Summarizer.png">
+
 6. 
