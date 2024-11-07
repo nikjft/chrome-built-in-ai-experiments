@@ -11,4 +11,8 @@ This project demonstrates a Chrome Extension, which uses the Built-in AI summari
 5. You should see something like this: 
    <img title="Summarizer Chrome Extension" alt="Summarizer Chrome Extension" src="Chrome-Extension-Summarizer.png">
 
-6. 
+6. Now visit any page, select a section of text from the page and then right-click and select the `Summarize` action. This will display the summary as shown below in the Chrome Extensions side panel. 
+
+A sample result in shown below. 
+
+   <img title="Summarizer Chrome Extension" alt="Summarizer Chrome Extension" src="Chrome-Extension-Summarizer-in-action.png">
