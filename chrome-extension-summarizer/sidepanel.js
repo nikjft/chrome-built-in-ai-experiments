@@ -1,6 +1,4 @@
-// Declare summarizeText as async
 async function chromeAISummarizeText(textToSummarize) {
-    // ... (rest of the function remains the same)
     if (!textToSummarize) return;
   
     document.body.querySelector('#summarization-text').innerText = "Summarizing...";
@@ -33,7 +31,5 @@ chrome.storage.session.onChanged.addListener(async (changes) => {
     if (!lastTextToSummarizeChange) {
       return;
     }
-  
     await chromeAISummarizeText(lastTextToSummarizeChange.newValue);
-
 });
