@@ -15,4 +15,4 @@ This project demonstrates a Chrome Extension, which uses the Built-in AI Prompt 
 
 A sample result in shown below. 
 
-   <img title="Code Explanation Chrome Extension" alt="Code Explanation Chrome Extension" src="Chrome-Extension-Code-Explanation-in-action.png">
+   <img title="Code Explanation Chrome Extension" alt="Code Explanation Chrome Extension" src="Chrome-Extension-Code-Explanation-in-action.gif">
