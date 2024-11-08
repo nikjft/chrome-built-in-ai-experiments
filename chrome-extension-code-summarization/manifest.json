@@ -1,0 +1,17 @@
+{
+    "name": "Chrome built-in AI Code Explain This Side Panel",
+    "version": "1.0",
+    "manifest_version": 3,
+    "description": "Provides an explanation of the programming code selected in the web page",
+    "background": {
+      "service_worker": "service-worker.js"
+    },
+    "icons": {
+      "128": "images/icon-128.png",
+      "16": "images/icon-16.png"
+    },
+    "side_panel": {
+      "default_path": "code-explaination-sidePanel.html"
+    },
+    "permissions": ["sidePanel", "contextMenus", "storage"]
+  }
