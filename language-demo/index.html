@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="origin-trial" content="Your Origin Trial Key">
+  <title>Language Detector and Translator</title>
+  <style>
+    .translate-link {
+      text-decoration: none;
+      color: blue;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Comments in Different Languages</h1>
+  <button id="detectLanguagesButton">Detect Languages</button>
+  <ul id="commentsList">
+    <li>
+      <p>जब मैं अपना यूजरनेम और पासवर्ड डालकर लॉगिन बटन दबाता हूँ, तो मुझे एक त्रुटि संदेश दिखाई देता है जो कहता है "गलत यूजरनेम या पासवर्ड". हालांकि, मैं सही यूजरनेम और पासवर्ड डाल रहा हूँ। यह समस्या बार-बार हो रही है।</p>
+    </li>
+    <li>
+      <p>ユーザー名とパスワードを入力してログインボタンを押すと、「ユーザー名またはパスワードが正しくありません」というエラーメッセージが表示されます。しかし、正しいユーザー名とパスワードを入力しています。この問題は何度も発生しています。</p>
+    </li>
+    <li>
+      <p>Los gráficos del juego no se muestran correctamente. Algunos objetos están borrosos y las texturas no se están cargando correctamente.</p>
+    </li>
+  </ul>
+
+  <script>
+    const commentsList = document.getElementById('commentsList');
+    const detectLanguagesButton = document.getElementById('detectLanguagesButton');
+    const targetLanguage = 'en'; // Target language for translation
+
+    // Function to detect the language of a comment
+    async function detectLanguage(comment) {
+      try {
+
+        const detector = await ai.languageDetector.create();
+        const [bestResult] = await detector.detect(comment);
+
+        if (bestResult.detectedLanguage === null || bestResult.confidence < 0.4) {
+          return null; // Return null if the confidence is too low
+        }
+
+        return bestResult.detectedLanguage;
+      } catch (error) {
+        console.error('Error during language detection:', error);
+        return null; // Return null if there is an error
+      }
+    }
+
+    // Function to translate a comment
+    async function translateComment(comment, sourceLanguage) {
+      try {
+        const translator = await self.translation.createTranslator({
+                              sourceLanguage,
+                              targetLanguage,
+                            });
+        const translatedText = await translator.translate(comment);
+        return translatedText;
+      } catch (error) {
+        console.error('Error during translation:', error);
+        return comment; // Return the original comment in case of errors
+      }
+    }
+
+    // Function to handle link clicks
+    function handleTranslateClick(event) {
+      const link = event.target;
+      const commentElement = link.parentElement;
+      const comment = commentElement.querySelector('p').textContent;
+      const sourceLanguage = link.dataset.language; // Get the language from the data-language attribute
+
+      translateComment(comment, sourceLanguage).then(translatedText => {
+        // Update the comment element with the translated text
+        commentElement.querySelector('p').textContent = translatedText;
+      });
+    }
+
+    // Function to detect languages for all comments
+    async function detectLanguagesForAllComments() {
+      const comments = commentsList.querySelectorAll('li');
+      comments.forEach(async (commentElement) => {
+        const commentText = commentElement.querySelector('p').textContent;
+        const detectedLanguage = await detectLanguage(commentText);
+
+        if (detectedLanguage) {
+          const translateLink = document.createElement('a');
+          translateLink.classList.add('translate-link');
+          translateLink.textContent = `Translate from ${detectedLanguage}`;
+          translateLink.dataset.language = detectedLanguage; // Store language in the data attribute
+          translateLink.addEventListener('click', handleTranslateClick);
+          commentElement.appendChild(translateLink);
+        }
+      });
+    }
+
+    // Event listener for the "Detect Languages" button
+    detectLanguagesButton.addEventListener('click', detectLanguagesForAllComments);
+  </script>
+</body>
+</html>
