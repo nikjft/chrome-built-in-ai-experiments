@@ -116,7 +116,8 @@ function extractMainContent() {
  * @returns {Promise<string>} A promise that resolves with the summary text.
  */
 async function summarizeTextWithGemini(textToSummarize, apiKey) {
-    const prompt = `Summarize the following web page content into a concise paragraph with key points. Focus on the main topic and essential information. Make it sound like a summary you'd see at the top of a news article or email:
+    // Updated prompt for 5th-grade reading level, short sentences, bullets, and context
+    const prompt = `Summarize this page so I can decide if I should read the full article. Use short sentences and be direct and to the point. Ensure main takeaways are included as well as key people/places/tools/media that are mentioned. You do not need to be exhaustive. Do not add detail or references not already on the page.:
 
     ${textToSummarize}`;
 
@@ -185,7 +186,7 @@ function displaySummaryOnPage(summary, isError = false, isLoading = false) {
         color: ${isError ? '#991b1b' : (isLoading ? '#664d03' : '#2d3748')};
         padding: 1rem 1.5rem;
         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        z-index: 9999999; /* Very high z-index to ensure it's always on top */
+        z-index: 2147483647 !important; /* Absolute maximum z-index with !important */
         font-family: 'Inter', sans-serif;
         font-size: 1rem;
         line-height: 1.5;
@@ -196,16 +197,45 @@ function displaySummaryOnPage(summary, isError = false, isLoading = false) {
         border-bottom-right-radius: 0.5rem;
         border-bottom: 1px solid ${isError ? '#fca5a5' : (isLoading ? '#ffecb5' : '#a7b3ff')};
         box-sizing: border-box; /* Include padding in width */
+        cursor: pointer; /* Indicate it's clickable */
     `;
 
-    const summaryText = document.createElement('p');
-    summaryText.textContent = summary;
-    summaryText.style.cssText = `
+    // Create a container for the summary text to allow for different formatting
+    const summaryContentContainer = document.createElement('div');
+    summaryContentContainer.style.cssText = `
         flex-grow: 1;
         margin-right: 1rem;
         word-wrap: break-word;
         overflow-wrap: break-word;
     `;
+
+    // Check if the summary looks like a bulleted list
+    // This regex looks for lines starting with *, -, or a digit followed by a period and space
+    const bulletPointRegex = /^\s*[-*•\d]+\s+/m; // Added '•' and digit support
+    const lines = summary.split('\n').filter(line => line.trim() !== ''); // Split by newline and remove empty lines
+
+    if (!isError && !isLoading && lines.length > 1 && lines.some(line => bulletPointRegex.test(line))) {
+        console.log("content.js: Formatting summary as a bulleted list.");
+        const ul = document.createElement('ul');
+        ul.style.cssText = `
+            list-style-type: disc; /* Default disc bullets */
+            padding-left: 1.5rem; /* Indent for bullets */
+            margin: 0; /* Remove default ul margin */
+        `;
+        lines.forEach(line => {
+            const li = document.createElement('li');
+            // Remove common bullet prefixes like "* " or "- "
+            li.textContent = line.replace(/^\s*[-*•\d]+\s*/, '').trim();
+            ul.appendChild(li);
+        });
+        summaryContentContainer.appendChild(ul);
+    } else {
+        console.log("content.js: Formatting summary as a paragraph.");
+        const p = document.createElement('p');
+        p.textContent = summary;
+        summaryContentContainer.appendChild(p);
+    }
+
 
     const closeButton = document.createElement('button');
     closeButton.innerHTML = '&times;'; // HTML entity for 'x'
@@ -219,26 +249,26 @@ function displaySummaryOnPage(summary, isError = false, isLoading = false) {
         padding: 0;
         margin-left: 1rem;
     `;
-    closeButton.onclick = () => {
+    // Original close button click handler
+    closeButton.onclick = (event) => {
+        event.stopPropagation(); // Prevent the click from bubbling up to the summaryBox
         console.log("content.js: Close button clicked. Removing summary box.");
         summaryBox.remove();
     };
 
-    summaryBox.appendChild(summaryText);
-    if (!isLoading) { // Only show close button if not loading
-        summaryBox.appendChild(closeButton);
-    }
+    // New: Click anywhere on the summary box to close it
+    summaryBox.onclick = () => {
+        console.log("content.js: Summary box clicked. Removing summary box.");
+        summaryBox.remove();
+    };
+
+    summaryBox.appendChild(summaryContentContainer); // Append the container, not summaryText directly
+    summaryBox.appendChild(closeButton); // Close button is always shown now
+
 
     document.body.prepend(summaryBox);
     console.log("content.js: Summary box added to the page.");
 
-    // Optional: Auto-hide after a few seconds if not an error or loading
-    if (!isError && !isLoading) {
-        setTimeout(() => {
-            if (summaryBox && summaryBox.parentNode) { // Check if it still exists
-                console.log("content.js: Auto-hiding summary box after 15 seconds.");
-                summaryBox.remove();
-            }
-        }, 15000); // Remove after 15 seconds
-    }
+    // Removed the automatic auto-hide timeout.
+    // The summary box will now only disappear when the close button or the box itself is clicked.
 }

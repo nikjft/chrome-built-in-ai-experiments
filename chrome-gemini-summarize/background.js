@@ -15,15 +15,18 @@ chrome.runtime.onInstalled.addListener(() => {
 chrome.contextMenus.onClicked.addListener((info, tab) => {
     if (info.menuItemId === "addApiKey") {
         console.log("background.js: 'Add/Update API Key' context menu item clicked.");
-        // Set the popup to popup.html and open it
-        chrome.action.setPopup({ popup: "popup.html" }, () => {
-            // No direct way to "open" popup from background script,
-            // but setting it will make it appear on the next action click.
-            // For context menu, it just sets it for future action clicks.
-            // User will need to click the icon again if they want to see the popup immediately.
-            // Or, for a more direct approach, we could open a new tab with the popup HTML,
-            // but that's generally not the desired UX for an extension popup.
-            console.log("background.js: Popup set to popup.html for API key entry.");
+        // Open popup.html in a new, small window
+        chrome.windows.create({
+            url: "popup.html",
+            type: "popup",
+            width: 350, // Adjust width as needed
+            height: 250 // Adjust height as needed
+        }, (win) => {
+            if (chrome.runtime.lastError) {
+                console.error("background.js: Error creating popup window:", chrome.runtime.lastError);
+            } else {
+                console.log("background.js: Opened popup.html in a new window.");
+            }
         });
     }
 });
@@ -93,37 +96,37 @@ chrome.action.onClicked.addListener(async (tab) => {
 
         } else {
             // No API key, open the popup for API key entry
-            console.log("background.js: No API Key found. Setting popup to popup.html.");
-            chrome.action.setPopup({ popup: "popup.html" }, () => {
-                // This callback runs after the popup is set.
-                // The user still needs to click the icon again to open the popup.
-                // A common pattern is to open it programmatically if it's critical.
-                // However, direct programmatic opening of the popup from background
-                // is not straightforward and often involves creating a new window,
-                // which is not ideal for a simple popup.
-                // The user will see the popup on the *next* click, or can right-click.
-                console.log("background.js: Popup path set. User needs to click again to open.");
-            });
-            // Inform the user that they need to click again to open the popup
-            chrome.scripting.executeScript({
-                target: { tabId: tab.id },
-                function: () => {
-                    const existingMsg = document.getElementById('gemini-summary-box');
-                    if (existingMsg) existingMsg.remove();
-                    const msgBox = document.createElement('div');
-                    msgBox.id = 'gemini-summary-box';
-                    msgBox.style.cssText = `
-                        position: fixed; top: 0; left: 0; width: 100%; background-color: #fff3cd;
-                        color: #664d03; padding: 1rem 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-                        z-index: 9999999; font-family: 'Inter', sans-serif; font-size: 1rem;
-                        line-height: 1.5; display: flex; align-items: flex-start; justify-content: space-between;
-                        border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem;
-                        border-bottom: 1px solid #ffecb5; box-sizing: border-box;
-                    `;
-                    msgBox.innerHTML = `<p style="flex-grow: 1; margin-right: 1rem; word-wrap: break-word; overflow-wrap: break-word;">Please enter your Gemini API Key. Click the extension icon again, or right-click it and select "Add/Update Gemini API Key".</p>
-                        <button style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #664d03; line-height: 1; padding: 0; margin-left: 1rem;" onclick="this.parentNode.remove()">&times;</button>`;
-                    document.body.prepend(msgBox);
-                    setTimeout(() => { if (msgBox && msgBox.parentNode) msgBox.remove(); }, 15000);
+            console.log("background.js: No API Key found. Opening popup.html in a new window.");
+            chrome.windows.create({
+                url: "popup.html",
+                type: "popup",
+                width: 350, // Adjust width as needed
+                height: 250 // Adjust height as needed
+            }, (win) => {
+                if (chrome.runtime.lastError) {
+                    console.error("background.js: Error creating popup window for API key entry:", chrome.runtime.lastError);
+                    // Fallback: Inform user to right-click
+                    chrome.scripting.executeScript({
+                        target: { tabId: tab.id },
+                        function: () => {
+                            const existingMsg = document.getElementById('gemini-summary-box');
+                            if (existingMsg) existingMsg.remove();
+                            const msgBox = document.createElement('div');
+                            msgBox.id = 'gemini-summary-box';
+                            msgBox.style.cssText = `
+                                position: fixed; top: 0; left: 0; width: 100%; background-color: #fff3cd;
+                                color: #664d03; padding: 1rem 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                                z-index: 9999999; font-family: 'Inter', sans-serif; font-size: 1rem;
+                                line-height: 1.5; display: flex; align-items: flex-start; justify-content: space-between;
+                                border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem;
+                                border-bottom: 1px solid #ffecb5; box-sizing: border-box;
+                            `;
+                            msgBox.innerHTML = `<p style="flex-grow: 1; margin-right: 1rem; word-wrap: break-word; overflow-wrap: break-word;">Please enter your Gemini API Key. Right-click the extension icon and select "Add/Update Gemini API Key".</p>
+                                <button style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #664d03; line-height: 1; padding: 0; margin-left: 1rem;" onclick="this.parentNode.remove()">&times;</button>`;
+                            document.body.prepend(msgBox);
+                            setTimeout(() => { if (msgBox && msgBox.parentNode) msgBox.remove(); }, 15000);
+                        }
+                    });
                 }
             });
         }
