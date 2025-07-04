@@ -133,6 +133,8 @@ async function summarizeTextWithGemini(textToSummarize, apiKey, customPrompt) {
 
     const payload = { contents: chatHistory };
 
+    // *** CHANGE THIS LINE ***
+    // Change 'gemini-2.0-flash' to 'gemini-2.5-flash'
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
     console.log("content.js: Fetching summary from Gemini API...");
