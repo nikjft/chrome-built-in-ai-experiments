@@ -1,0 +1,29 @@
+// manifest.json
+{
+    "manifest_version": 3,
+    "name": "Web Page Summarizer",
+    "version": "1.0",
+    "description": "Summarizes the main content of a web page using the Gemini API.",
+    "permissions": [
+        "activeTab",
+        "scripting",
+        "storage",
+        "contextMenus"
+    ],
+    "host_permissions": [
+        "https://generativelanguage.googleapis.com/"
+    ],
+    "action": {
+        "default_title": "Web Page Summarizer" // Added a default title for the action button
+        // default_icon block removed as per user's instruction
+    },
+    "background": {
+        "service_worker": "background.js"
+    },
+    "content_scripts": [
+        {
+            "matches": ["<all_urls>"],
+            "js": ["content.js"]
+        }
+    ]
+}
