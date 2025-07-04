@@ -6,7 +6,7 @@ chrome.runtime.onInstalled.addListener(() => {
     console.log("background.js: Extension installed or updated. Creating context menu.");
     chrome.contextMenus.create({
         id: "addApiKey",
-        title: "Add/Update Gemini API Key",
+        title: "Add/Update Gemini API Key & Prompt", // Updated title
         contexts: ["action"] // Show when right-clicking the extension icon
     });
 });
@@ -14,13 +14,13 @@ chrome.runtime.onInstalled.addListener(() => {
 // Listen for clicks on the context menu item
 chrome.contextMenus.onClicked.addListener((info, tab) => {
     if (info.menuItemId === "addApiKey") {
-        console.log("background.js: 'Add/Update API Key' context menu item clicked.");
+        console.log("background.js: 'Add/Update API Key & Prompt' context menu item clicked.");
         // Open popup.html in a new, small window
         chrome.windows.create({
             url: "popup.html",
             type: "popup",
-            width: 350, // Adjust width as needed
-            height: 250 // Adjust height as needed
+            width: 380, // Adjusted width for new prompt field
+            height: 380 // Adjusted height for new prompt field
         }, (win) => {
             if (chrome.runtime.lastError) {
                 console.error("background.js: Error creating popup window:", chrome.runtime.lastError);
@@ -36,14 +36,16 @@ chrome.action.onClicked.addListener(async (tab) => {
     console.log("background.js: Extension icon clicked.");
 
     try {
-        // Check if an API key is stored
-        const result = await chrome.storage.local.get(['geminiApiKey']);
+        // Check if an API key and prompt are stored
+        const result = await chrome.storage.local.get(['geminiApiKey', 'summarizationPrompt']);
         const apiKey = result.geminiApiKey;
-        console.log(`background.js: API Key check - found: ${!!apiKey}`);
+        const prompt = result.summarizationPrompt;
 
-        if (apiKey) {
-            // API key exists, proceed to summarize
-            console.log("background.js: API Key found. Sending summarize message to content script.");
+        console.log(`background.js: API Key check - found: ${!!apiKey}, Prompt check - found: ${!!prompt}`);
+
+        if (apiKey && prompt) {
+            // API key and prompt exist, proceed to summarize
+            console.log("background.js: API Key and Prompt found. Sending summarize message to content script.");
             // Reset popup to null so it doesn't show up on subsequent clicks unless needed
             chrome.action.setPopup({ popup: "" });
 
@@ -56,8 +58,8 @@ chrome.action.onClicked.addListener(async (tab) => {
             });
             console.log("background.js: content.js script ensured to be injected.");
 
-            // Send message to content script to summarize
-            chrome.tabs.sendMessage(tab.id, { action: 'summarizePage', apiKey: apiKey }, (response) => {
+            // Send message to content script to summarize, passing both API key and prompt
+            chrome.tabs.sendMessage(tab.id, { action: 'summarizePage', apiKey: apiKey, prompt: prompt }, (response) => {
                 if (chrome.runtime.lastError) {
                     console.error("background.js: Error sending message or receiving response from content script:", chrome.runtime.lastError);
                     // Optionally, display an error to the user via a temporary content script injection
@@ -72,7 +74,7 @@ chrome.action.onClicked.addListener(async (tab) => {
                             errorBox.style.cssText = `
                                 position: fixed; top: 0; left: 0; width: 100%; background-color: #fee2e2;
                                 color: #991b1b; padding: 1rem 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-                                z-index: 9999999; font-family: 'Inter', sans-serif; font-size: 1rem;
+                                z-index: 2147483647 !important; font-family: 'Inter', sans-serif; font-size: 1rem;
                                 line-height: 1.5; display: flex; align-items: flex-start; justify-content: space-between;
                                 border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem;
                                 border-bottom: 1px solid #fca5a5; box-sizing: border-box;
@@ -95,16 +97,16 @@ chrome.action.onClicked.addListener(async (tab) => {
             });
 
         } else {
-            // No API key, open the popup for API key entry
-            console.log("background.js: No API Key found. Opening popup.html in a new window.");
+            // No API key or prompt, open the popup for entry
+            console.log("background.js: API Key or Prompt missing. Opening popup.html in a new window.");
             chrome.windows.create({
                 url: "popup.html",
                 type: "popup",
-                width: 350, // Adjust width as needed
-                height: 250 // Adjust height as needed
+                width: 380, // Adjusted width
+                height: 380 // Adjusted height
             }, (win) => {
                 if (chrome.runtime.lastError) {
-                    console.error("background.js: Error creating popup window for API key entry:", chrome.runtime.lastError);
+                    console.error("background.js: Error creating popup window for API key/prompt entry:", chrome.runtime.lastError);
                     // Fallback: Inform user to right-click
                     chrome.scripting.executeScript({
                         target: { tabId: tab.id },
@@ -116,12 +118,12 @@ chrome.action.onClicked.addListener(async (tab) => {
                             msgBox.style.cssText = `
                                 position: fixed; top: 0; left: 0; width: 100%; background-color: #fff3cd;
                                 color: #664d03; padding: 1rem 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-                                z-index: 9999999; font-family: 'Inter', sans-serif; font-size: 1rem;
+                                z-index: 2147483647 !important; font-family: 'Inter', sans-serif; font-size: 1rem;
                                 line-height: 1.5; display: flex; align-items: flex-start; justify-content: space-between;
                                 border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem;
                                 border-bottom: 1px solid #ffecb5; box-sizing: border-box;
                             `;
-                            msgBox.innerHTML = `<p style="flex-grow: 1; margin-right: 1rem; word-wrap: break-word; overflow-wrap: break-word;">Please enter your Gemini API Key. Right-click the extension icon and select "Add/Update Gemini API Key".</p>
+                            msgBox.innerHTML = `<p style="flex-grow: 1; margin-right: 1rem; word-wrap: break-word; overflow-wrap: break-word;">Please enter your Gemini API Key and/or Prompt. Right-click the extension icon and select "Add/Update Gemini API Key & Prompt".</p>
                                 <button style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #664d03; line-height: 1; padding: 0; margin-left: 1rem;" onclick="this.parentNode.remove()">&times;</button>`;
                             document.body.prepend(msgBox);
                             setTimeout(() => { if (msgBox && msgBox.parentNode) msgBox.remove(); }, 15000);
@@ -142,7 +144,7 @@ chrome.action.onClicked.addListener(async (tab) => {
                 errorBox.style.cssText = `
                     position: fixed; top: 0; left: 0; width: 100%; background-color: #fee2e2;
                     color: #991b1b; padding: 1rem 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-                    z-index: 9999999; font-family: 'Inter', sans-serif; font-size: 1rem;
+                    z-index: 2147483647 !important; font-family: 'Inter', sans-serif; font-size: 1rem;
                     line-height: 1.5; display: flex; align-items: flex-start; justify-content: space-between;
                     border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem;
                     border-bottom: 1px solid #fca5a5; box-sizing: border-box;

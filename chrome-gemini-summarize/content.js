@@ -5,13 +5,21 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     console.log("content.js: Message received from background script:", request.action);
     if (request.action === 'summarizePage') {
         const apiKey = request.apiKey; // Get API key from the background script
+        const customPrompt = request.prompt; // Get custom prompt from the background script
+
         if (!apiKey) {
             console.error("content.js: API Key not provided by the background script.");
             displaySummaryOnPage("Error: API Key not available. Please set it via the extension's right-click menu.", true);
             sendResponse({ error: "API Key not provided by the background script." });
             return true;
         }
-        console.log("content.js: API Key received.");
+        if (!customPrompt) {
+             console.error("content.js: Summarization prompt not provided by the background script.");
+             displaySummaryOnPage("Error: Summarization prompt not available. Please set it via the extension's right-click menu.", true);
+             sendResponse({ error: "Summarization prompt not provided by the background script." });
+             return true;
+        }
+        console.log("content.js: API Key and Prompt received.");
 
         // Find the main content of the page
         console.log("content.js: Attempting to extract main content...");
@@ -28,7 +36,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         // Call the Gemini API to summarize the content
         console.log("content.js: Calling Gemini API for summarization...");
         displaySummaryOnPage("Summarizing page content...", false, true); // Show loading message
-        summarizeTextWithGemini(mainContent, apiKey) // Pass API key to the function
+        summarizeTextWithGemini(mainContent, apiKey, customPrompt) // Pass API key and custom prompt to the function
             .then(summary => {
                 console.log("content.js: Summary received from Gemini API.");
                 displaySummaryOnPage(summary); // Display actual summary
@@ -113,13 +121,12 @@ function extractMainContent() {
  * Calls the Gemini API to summarize the given text.
  * @param {string} textToSummarize The text content to be summarized.
  * @param {string} apiKey The Gemini API key.
+ * @param {string} customPrompt The custom summarization prompt.
  * @returns {Promise<string>} A promise that resolves with the summary text.
  */
-async function summarizeTextWithGemini(textToSummarize, apiKey) {
-    // Updated prompt for 5th-grade reading level, short sentences, bullets, and context
-    const prompt = `Summarize this page so I can decide if I should read the full article. Use short sentences and be direct and to the point. Ensure main takeaways are included as well as key people/places/tools/media that are mentioned. You do not need to be exhaustive. Do not add detail or references not already on the page.:
-
-    ${textToSummarize}`;
+async function summarizeTextWithGemini(textToSummarize, apiKey, customPrompt) {
+    // Use the custom prompt provided by the user
+    const prompt = `${customPrompt}:\n\n${textToSummarize}`;
 
     let chatHistory = [];
     chatHistory.push({ role: "user", parts: [{ text: prompt }] });
@@ -256,7 +263,7 @@ function displaySummaryOnPage(summary, isError = false, isLoading = false) {
         summaryBox.remove();
     };
 
-    // New: Click anywhere on the summary box to close it
+    // Click anywhere on the summary box to close it
     summaryBox.onclick = () => {
         console.log("content.js: Summary box clicked. Removing summary box.");
         summaryBox.remove();
@@ -269,6 +276,5 @@ function displaySummaryOnPage(summary, isError = false, isLoading = false) {
     document.body.prepend(summaryBox);
     console.log("content.js: Summary box added to the page.");
 
-    // Removed the automatic auto-hide timeout.
     // The summary box will now only disappear when the close button or the box itself is clicked.
 }

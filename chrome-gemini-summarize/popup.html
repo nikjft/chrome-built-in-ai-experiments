@@ -4,12 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web Page Summarizer - API Key</title>
+    <title>Web Page Summarizer - Configuration</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            width: 300px;
+            width: 350px; /* Adjusted width to accommodate prompt textarea */
             padding: 1rem;
             background-color: #f7fafc; /* Light gray background */
         }
@@ -31,29 +31,49 @@
         .button:hover {
             background-color: #5a67d8; /* Indigo 700 */
         }
-        input[type="text"] {
+        input[type="text"], textarea {
             border: 1px solid #cbd5e0; /* Gray 300 */
             padding: 0.5rem 0.75rem;
             border-radius: 0.375rem;
             width: 100%;
             box-sizing: border-box;
         }
+        textarea {
+            min-height: 80px; /* Give some default height */
+            resize: vertical; /* Allow vertical resizing */
+        }
         .status-message {
             font-size: 0.75rem; /* text-xs */
             text-align: center;
             margin-top: 0.25rem;
         }
+        .flex-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .flex-buttons .button {
+            flex: 1;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1 class="text-xl font-bold text-gray-800 mb-2">Manage Gemini API Key</h1>
+        <h1 class="text-xl font-bold text-gray-800 mb-2">Web Page Summarizer Settings</h1>
 
         <div class="mb-4">
             <label for="apiKeyInput" class="block text-sm font-medium text-gray-700 mb-1">Gemini API Key:</label>
             <input type="text" id="apiKeyInput" placeholder="Enter your API key here" class="focus:ring-indigo-500 focus:border-indigo-500">
-            <button id="saveApiKeyButton" class="button mt-2 w-full">Save API Key</button>
             <p id="apiKeyStatus" class="status-message text-gray-500 hidden"></p>
+        </div>
+
+        <div class="mb-4">
+            <label for="promptInput" class="block text-sm font-medium text-gray-700 mb-1">Summarization Prompt:</label>
+            <textarea id="promptInput" placeholder="Enter your custom prompt here" class="focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+            <div class="flex-buttons mt-2">
+                <button id="saveSettingsButton" class="button">Save Settings</button>
+                <button id="resetPromptButton" class="button bg-gray-500 hover:bg-gray-600">Reset Prompt</button>
+            </div>
+            <p id="promptStatus" class="status-message text-gray-500 hidden"></p>
         </div>
     </div>
     <script src="popup.js"></script>
